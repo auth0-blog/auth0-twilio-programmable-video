@@ -1,23 +1,45 @@
 import React, {Component} from 'react';
+import {Route, withRouter} from 'react-router-dom';
+import LandingPage from './components/LandingPage';
+import VideoConference from './components/VideoConference';
 
 class App extends Component {
+  constructor(props) {
+    super(props);
+
+    this.state = {
+      videoCallId: '',
+    };
+
+    this.updateVideoCallId = this.updateVideoCallId.bind(this);
+    this.joinConference = this.joinConference.bind(this);
+  }
+
+  joinConference() {
+    this.props.history.push('/video-conference');
+  }
+
+  updateVideoCallId(event) {
+    this.setState({
+      videoCallId: event.target.value.trim(),
+    });
+  }
+
   render() {
     return (
       <div id="main-container" className="d-flex align-items-center bg-secondary">
         <div className="container">
           <div className="row">
             <div className="col-12">
-              <div class="card">
-                <div className="card-body">
-                  <h1>Secure Twilio Video Conferences</h1>
-                  <div className="form-group">
-                    <label htmlFor="exampleFormControlInput1">Enter a Video Call ID:</label>
-                    <input type="email" className="form-control" id="video-call-id"
-                           placeholder="my-video-call"/>
-                  </div>
-                  <button type="submit" className="btn btn-primary mb-2">Join Call</button>
-                </div>
-              </div>
+              <Route path="/" exact render={() => (
+                <LandingPage
+                  videoCallId={this.state.videoCallId}
+                  joinConference={this.joinConference}
+                  updateVideoCallId={this.updateVideoCallId}/>
+              )}/>
+              <Route path="/video-conference" render={() => (
+                <VideoConference videoCallId={this.state.videoCallId}/>
+              )}/>
             </div>
           </div>
         </div>
@@ -26,4 +48,4 @@ class App extends Component {
   }
 }
 
-export default App;
+export default withRouter(App);
