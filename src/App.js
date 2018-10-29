@@ -29,19 +29,15 @@ class App extends Component {
     return (
       <div id="main-container" className="d-flex align-items-center bg-secondary">
         <div className="container">
-          <div className="row">
-            <div className="col-12">
-              <Route path="/" exact render={() => (
-                <LandingPage
-                  videoCallId={this.state.videoCallId}
-                  joinConference={this.joinConference}
-                  updateVideoCallId={this.updateVideoCallId}/>
-              )}/>
-              <Route path="/video-conference" render={() => (
-                <VideoConference videoCallId={this.state.videoCallId}/>
-              )}/>
-            </div>
-          </div>
+          <Route path="/" exact render={() => (
+            <LandingPage
+              videoCallId={this.state.videoCallId}
+              joinConference={this.joinConference}
+              updateVideoCallId={this.updateVideoCallId}/>
+          )}/>
+          <Route path="/video-conference" render={() => (
+            <VideoConference videoCallId={this.state.videoCallId}/>
+          )}/>
         </div>
       </div>
     );
