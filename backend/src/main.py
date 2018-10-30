@@ -1,25 +1,30 @@
 # coding=utf-8
 
-from flask import Flask, jsonify
+from flask import Flask, jsonify, _request_ctx_stack
 from twilio.jwt.access_token import AccessToken
 from twilio.jwt.access_token.grants import VideoGrant
+from flask_cors import CORS
+from .auth import AuthError, requires_auth
 
 # creating the Flask application
 app = Flask(__name__)
+CORS(app)
 
 
-@app.route('/exams/<string:room_name>')
+@app.route('/conference-token/<string:room_name>')
+@requires_auth
 def token(room_name):
     # get credentials for environment variables
-    account_sid = 'AC7a138c5f3b84adb7c1ac85a19a974e08'
-    api_key = 'SKdadecf1f9e6ce34a94359387c33f2327'
-    api_secret = 'jIEbwO88bCy5TZOXaO7XpcMkvrV7fI2v'
+    account_sid = '--'
+    api_key = '--'
+    api_secret = '--'
 
     # Create an Access Token
     token = AccessToken(account_sid, api_key, api_secret)
 
     # Set the Identity of this token
-    token.identity = "testing"
+    print(_request_ctx_stack.top.current_user['sub'])
+    token.identity = _request_ctx_stack.top.current_user['sub']
 
     # Grant access to Video
     grant = VideoGrant()
@@ -28,3 +33,10 @@ def token(room_name):
 
     # Return token info as JSON
     return jsonify(identity=token.identity, token=token.to_jwt().decode('UTF-8'))
+
+
+@app.errorhandler(AuthError)
+def handle_auth_error(ex):
+    response = jsonify(ex.error)
+    response.status_code = ex.status_code
+    return response
