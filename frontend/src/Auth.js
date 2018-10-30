@@ -5,7 +5,7 @@ class Auth {
     this.auth0 = new auth0.WebAuth({
       // the following three lines MUST be updated
       domain: 'blog-samples.auth0.com',
-      audience: 'https://blog-samples.auth0.com/userinfo',
+      audience: 'http://localhost:5000/conference-token',
       clientID: '4IdhGjfMuh2cNSemwuu2BEzhsOF80L5q',
       redirectUri: 'http://localhost:3000',
       responseType: 'token id_token',
@@ -17,6 +17,10 @@ class Auth {
     this.isAuthenticated = this.isAuthenticated.bind(this);
     this.signIn = this.signIn.bind(this);
     this.signOut = this.signOut.bind(this);
+  }
+
+  getAccessToken() {
+    return this.accessToken;
   }
 
   getProfile() {
@@ -37,7 +41,7 @@ class Auth {
       if (!window.location.hash) {
         this.auth0.checkSession({}, (err, authResult) => {
           if (err) return reject(err);
-          if (!authResult || !authResult.idToken) {
+          if (!authResult || !authResult.idToken || !authResult.accessToken) {
             return resolve(false);
           }
           this.setSession(authResult);
@@ -56,6 +60,7 @@ class Auth {
   }
 
   setSession(authResult) {
+    this.accessToken = authResult.accessToken;
     this.idToken = authResult.idToken;
     this.profile = authResult.idTokenPayload;
     // set the time that the id token will expire at
@@ -68,6 +73,7 @@ class Auth {
 
   signOut() {
     // clear id token, profile, and expiration
+    this.accessToken = null;
     this.idToken = null;
     this.profile = null;
     this.expiresAt = null;

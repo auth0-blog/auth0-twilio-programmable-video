@@ -1,8 +1,7 @@
 import React, {Component} from 'react';
 import {connect, createLocalVideoTrack} from 'twilio-video';
-
-// TODO get access token from a secure backend
-const token = 'some-access-token';
+import auth0Client from '../Auth';
+import axios from 'axios';
 
 class VideoConference extends Component {
   constructor(props) {
@@ -13,35 +12,43 @@ class VideoConference extends Component {
   }
 
   async componentDidMount() {
-    console.log(this.props.videoCallId);
-    try {
-      const room = await connect(token, {name: this.props.videoCallId});
-      room.on('participantConnected', participant => {
-        console.log(`Participant "${participant.identity}" connected`);
+    const { match: { params } } = this.props;
+    const { conferenceId } = params;
 
-        participant.tracks.forEach(publication => {
-          if (publication.isSubscribed) {
-            const track = publication.track;
+    axios.get(`http://localhost:5000/conference-token/${conferenceId}`, {
+      headers: { 'Authorization': `Bearer ${auth0Client.getAccessToken()}` }
+    }).then(async (res) => {
+      const {token: twilioToken} = res.data;
+
+      try {
+        const room = await connect(twilioToken, {name: this.props.videoCallId});
+        room.on('participantConnected', participant => {
+          console.log(`Participant "${participant.identity}" connected`);
+
+          participant.tracks.forEach(publication => {
+            if (publication.isSubscribed) {
+              const track = publication.track;
+              document.getElementById('remote-media-div').appendChild(track.attach());
+            }
+          });
+
+          participant.on('trackSubscribed', track => {
             document.getElementById('remote-media-div').appendChild(track.attach());
-          }
+          });
         });
 
-        participant.on('trackSubscribed', track => {
-          document.getElementById('remote-media-div').appendChild(track.attach());
+        const track = await createLocalVideoTrack();
+        const localMediaContainer = document.getElementById('local-video');
+        localMediaContainer.appendChild(track.attach());
+        this.setState({
+          title: `Joined Room: ${room.name}`,
         });
-      });
-
-      const track = await createLocalVideoTrack();
-      const localMediaContainer = document.getElementById('local-video');
-      localMediaContainer.appendChild(track.attach());
-      this.setState({
-        title: `Joined Room: ${room.name}`,
-      });
-    } catch (error) {
-      this.setState({
-        title: error.message,
-      });
-    }
+      } catch (error) {
+        this.setState({
+          title: error.message,
+        });
+      }
+    });
   }
 
   render() {

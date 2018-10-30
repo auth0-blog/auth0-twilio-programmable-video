@@ -16,7 +16,7 @@ class LandingPage extends Component {
   }
 
   joinConference() {
-    this.props.history.push('/video-conference');
+    this.props.history.push('/video-conference/' + this.state.videoCallId);
   }
 
   updateVideoCallId(event) {
