@@ -1,10 +1,14 @@
 # coding=utf-8
 
+from dotenv import load_dotenv
 from flask import Flask, jsonify, _request_ctx_stack
 from twilio.jwt.access_token import AccessToken
 from twilio.jwt.access_token.grants import VideoGrant
 from flask_cors import CORS
+import os
 from .auth import AuthError, requires_auth
+
+load_dotenv(verbose=True)
 
 # creating the Flask application
 app = Flask(__name__)
@@ -15,9 +19,9 @@ CORS(app)
 @requires_auth
 def token(room_name):
     # get credentials for environment variables
-    account_sid = '--'
-    api_key = '--'
-    api_secret = '--'
+    account_sid = os.getenv("TWILIO_ACCOUNT_SID")
+    api_key = os.getenv("TWILIO_API_KEY")
+    api_secret = os.getenv("TWILIO_API_SECRET")
 
     # Create an Access Token
     token = AccessToken(account_sid, api_key, api_secret)
